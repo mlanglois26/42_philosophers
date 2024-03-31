@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 10:15:41 by malanglo          #+#    #+#             */
-/*   Updated: 2024/03/29 16:48:07 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/03/31 10:03:58 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@
 // 			printf("Erreur lors de la jonction des threads\n");
 // 			exit(0);
 // 		}
-// 		i++;
+// 		i++;cd ..
 // 	}
 // }
 

@@ -1,4 +1,3 @@
-
 # include <pthread.h>
 # include <stdio.h>
 # include <stdlib.h>
@@ -20,26 +19,21 @@ typedef struct s_philo
 	long			    time_to_eat;
 	long			    time_to_sleep;
 	int				    meal_count;
-    int                 ready;
+    int                 has_been_created;
 	int				    *state;
     void                *ptr;
-    // long                *last_meal_time; 
-    // long                *blocktime; 
 }					t_philo;
 
 typedef struct s_program
 {
 	t_philo			    *philosophers;
 	int				    phil_count;
+    int                 all_philo_created;
     int 			    end_of_program;
-	double 			    start_of_program;
+	long 			    start_of_program;
     pthread_mutex_t     mutex;
 	pthread_mutex_t	    *forks_mutex;
-	pthread_mutex_t		 *script;
-    int                    all_philo_ready;
-    // pthread_t 		    *monitor;
-    // pthread_t           *clock_mutex;
-    pthread_t           monitor;
+	pthread_mutex_t		*printf_mutex;
 }					t_program;
 
 
@@ -161,16 +155,6 @@ int verif_args(int argc, char **argv)
     return (1);
 }
 
-/* init */
-
-// void init_program(t_program *program)
-// {   
-//     program->philosophers = malloc(sizeof(t_philo) * program->phil_count);
-//     program->forks_mutex = malloc(sizeof(pthread_mutex_t) * program->phil_count);
-//     init_forks(program);
-// }
-
-
 void init_forks(t_program *program)
 {
     int i;
@@ -190,30 +174,14 @@ t_philo *init_philo_malloc(t_program *program)
     philo = malloc(sizeof(t_philo));
     if (!philo)
         return (NULL);
-    // philo->last_meal_time = malloc(sizeof(long));
-    // if (!philo->last_meal_time)
-    // {
-    //     free(philo);
-    //     return (NULL);
-    // }
-    // philo->blocktime = malloc(sizeof(long));
-    // if (!philo->blocktime)
-    // {
-    //     free(philo->last_meal_time);
-    //     free(philo);
-    //     return (NULL);
-    // }
-    // philo->state = malloc(sizeof(int));
-    // if (!philo->state)
-    // {
-    //     free(philo->last_meal_time);
-    //     free(philo->blocktime);
-    //     free (philo);
-    //     return (NULL);
-    // }
+     philo->state = malloc(sizeof(int));
+    if (!philo->state)
+    {
+        free (philo);
+        return (NULL);
+    }
     return (philo);
 }
-
 
 t_program *init_program(int nb1)
 {   
@@ -222,18 +190,13 @@ t_program *init_program(int nb1)
     program = malloc(sizeof(t_program));
     if (!program)
         return (NULL);
+    program->all_philo_created = 0;
     program->phil_count = nb1;
     program->philosophers = malloc(sizeof(t_philo) * program->phil_count);
     if (!program->philosophers)
     {
         free(program);
         return (NULL);
-    }
-    program->all_philo_ready = 0;
-    if (pthread_mutex_init(&(program->mutex), NULL) != 0) {
-        free(program->philosophers);
-        free(program);
-        return NULL;
     }
     program->forks_mutex = malloc(sizeof(pthread_mutex_t) * program->phil_count);
     if (!program->forks_mutex)
@@ -243,24 +206,31 @@ t_program *init_program(int nb1)
         return (NULL);
     }
     init_forks(program);
-    program->script = malloc(sizeof(pthread_mutex_t));
+    program->printf_mutex = malloc(sizeof(pthread_mutex_t));
+    if (!program->printf_mutex)
+    {
+        free(program->philosophers);
+        free(program->forks_mutex);
+        free(program);
+        return (NULL);
+    }
+    pthread_mutex_init(program->printf_mutex, NULL);
     return (program);
 }
-
 
 void fill_philo_struct(t_program *program, char **argv)
 {
     int i;
-    struct timeval tv;
+    // struct timeval tv;
 
-    gettimeofday(&tv, NULL);
+    // gettimeofday(&tv, NULL);
     i = 0;
     while (i < program->phil_count)
     {
         program->philosophers[i] = *init_philo_malloc(program);
         program->philosophers[i].id = i + 1;
         program->philosophers[i].ptr = program;
-        program->philosophers[i].ready = 0;
+        program->philosophers[i].has_been_created = 0;
         program->philosophers[i].time_to_die = ft_atol(argv[2]);
         program->philosophers[i].time_to_eat = ft_atol(argv[3]);
         program->philosophers[i].time_to_sleep = ft_atol(argv[4]);
@@ -287,70 +257,38 @@ void print_program_struct(t_program *program)
     printf("Phil_count: %d\n", program->phil_count);
 }
 
-
-// pour s assurer qu un seuk thread puisse acceder a printf
 void script_monitor(t_program *program, t_philo *philo)
 {
     int state;
     struct timeval tv;
-    long clock_time;
+    long current_time;
 
-    pthread_mutex_lock(program->script);
+    gettimeofday(&tv, NULL);
+
+    pthread_mutex_lock(program->printf_mutex);
     
     state = (*(philo->state));
-    gettimeofday(&tv, NULL);
-    
-    clock_time = (tv.tv_sec * 1e3 + tv.tv_usec / 1e3) - program->start_of_program;
+    current_time = (tv.tv_sec * 1e3 + tv.tv_usec / 1e3) - program->start_of_program;
 
-    printf("dans script -> program start = %f\n", program->start_of_program);
-    printf("current time = %f\n", (tv.tv_sec * 1e3 + tv.tv_usec / 1e3));
+   
+    // printf("dans printf monitor -> program start = %ld\n", program->start_of_program);
+    // printf("current time = %f\n", (tv.tv_sec * 1e3 + tv.tv_usec / 1e3));
+
     if (state == THINKING)
-        printf("%ld Philo %d is thinking\n", clock_time, philo->id); // putain c est des microsecondsssssssssssssss === je veux des milllllli
+        printf("%ld %d is thinking\n", current_time, philo->id); // putain c est des microsecondsssssssssssssss === je veux des milllllli
     else if (state == EATING)
-        printf("%ld Philo %d is eating\n", clock_time, philo->id);
+        printf("%ld %d is eating\n", current_time, philo->id);
     else if (state == SLEEPING)
-        printf("%ld Philo %d is sleeping\n", clock_time, philo->id);
+        printf("%ld %d is sleeping\n", current_time, philo->id);
     else if (state == DEAD)
-        printf("Philo %d is dead\n", philo->id);
+        printf("%ld %d is dead\n", current_time, philo->id);
     else if (state == HAS_TAKEN_A_FORK)
-        printf("%ld Philo %d has taken a fork\n", clock_time, philo->id);
+        printf("%ld %d has taken a fork\n", current_time, philo->id);
     else
         printf("Dinner is over\n");
 
-    pthread_mutex_unlock(program->script);
+    pthread_mutex_unlock(program->printf_mutex);
 
-}
-
-    // printf("enter in routine\n");
-    // t_philo *philo;
-    // t_program *program;
-
-    // philo = (t_philo *)data;
-    // program = (t_program *)philo->ptr;
-   
-    // pthread_mutex_lock(&(program->mutex));
-    // while (all_philo_created(program) == 0)
-    //     ;
-    // pthread_mutex_unlock(&(program->mutex));
-    // printf("all philos ready\n");
-
-
-int all_philo_created(t_program *program)
-{
-    int i;
-
-    i = 0;
-    while (i < program->phil_count)
-    {
-        if (program->philosophers[i].ready == 0)
-        {
-            printf("missing philo %d\n", program->philosophers[i].id);
-            return (0);
-        }
-        printf("philo %d is ready\n", program->philosophers[i].id);
-        i++;
-    }
-    return (1);
 }
 
 int nb_of_philo_ready(t_program *program)
@@ -362,83 +300,74 @@ int nb_of_philo_ready(t_program *program)
     i = 0;
     while (i < program->phil_count)
     {
-        if (program->philosophers[i].ready == 1)
+        if (program->philosophers[i].has_been_created == 1)
             count++;
         i++;
     }
     return (count);
 }
 
-
-void *syncro(void *data)
-{
-    // printf("enter in monitor synchro thread\n");
-    t_program *program;
-
-    program = (t_program *)data;
-   
-    while (nb_of_philo_ready(program) != program->phil_count)
-        usleep (1000);
-    
-    pthread_mutex_lock(&(program->mutex));
-    program->all_philo_ready = 1;
-    pthread_mutex_unlock(&(program->mutex));
-
-    // printf("according to monitor all philos are ready\n");
-    return (NULL);
-}
-
-
 void *thread_routine(void *data)
 {
-    t_philo *philo = (t_philo *)data;
-    t_program *program = (t_program *)philo->ptr;
-    struct timeval tv;
+    t_philo *philo;
+    t_program *program;
+
+    philo = (t_philo *)data;
+    program = (t_program *)philo->ptr;;
     
     int left_fork_id;
     int right_fork_id;
-    left_fork_id = philo->id;
-    // printf("left_fork_id = %d\n", left_fork_id);
 
+    left_fork_id = philo->id;
     right_fork_id = (philo->id + 1) % program->phil_count;
-    syncro(program);
-    if (program->all_philo_ready == 1)
+
+    // wait for monitor signal to say start routine
+    // monitor_approval(program);
+    // while (nb_of_philo_ready(program) == 1)
+    //     usleep(10000);
+
+    while (program->all_philo_created != 1)
+        usleep(10000);
+
+    if (program->all_philo_created == 1)
     {
-        printf("syncro passed\n");
-        gettimeofday(&tv, NULL);
-        program->start_of_program = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
         int i = 0;
-        
         while (i < 2)
         {
-            pthread_mutex_lock(&program->forks_mutex[left_fork_id]);
-            script_monitor(program, philo);
-        
-            pthread_mutex_lock(&program->forks_mutex[right_fork_id]);
-            script_monitor(program, philo);
+            // // pthread_mutex_lock(&program->forks_mutex[left_fork_id]);
+            // *(program->philosophers[philo->id].state) = HAS_TAKEN_A_FORK;
+            // script_monitor(program, philo);
+            
+            // // pthread_mutex_lock(&program->forks_mutex[right_fork_id]);
+            // // *(program->philosophers[philo->id].state) = HAS_TAKEN_A_FORK;
+            // // script_monitor(program, philo);
+            
+            // // *(program->philosophers[philo->id].state) = EATING;
+            // // script_monitor(program, philo);
+            // // usleep(philo->time_to_eat);
 
+            // // pthread_mutex_unlock(&program->forks_mutex[left_fork_id]);
+            // // pthread_mutex_unlock(&program->forks_mutex[right_fork_id]);
+            *(philo->state) = SLEEPING;
             script_monitor(program, philo);
-            usleep(philo->time_to_eat);
+            usleep(philo->time_to_sleep);
+
             i++;
         }
-        
     }
     else
-        printf("synchro echec\n");
-    
-
+        printf("philo are not all ready\n");
 
     return (NULL);
 }
-
-
 
 void create_philo_threads(t_program *program)
 {
     int i;
     int ret;
+    struct timeval tv;
 
-    pthread_create(&(program->monitor), NULL, syncro, (void *)program);
+    pthread_mutex_init(&program->mutex, NULL);
 
     i = 0;
     while (i < program->phil_count)
@@ -449,11 +378,24 @@ void create_philo_threads(t_program *program)
 			printf("Erreur lors de la creation des threads\n");
 			exit(0);
 		}
-        program->philosophers[i].ready = 1;
+        program->philosophers[i].has_been_created = 1;
         i++;
     }
-    
-    pthread_join(program->monitor, NULL);
+
+    pthread_mutex_lock(&program->mutex);
+    while (nb_of_philo_ready(program) != program->phil_count) 
+    {
+        pthread_mutex_unlock(&program->mutex);
+        usleep(10000);
+        pthread_mutex_lock(&program->mutex);
+    }
+    pthread_mutex_unlock(&program->mutex);
+
+    program->all_philo_created = 1;
+
+    gettimeofday(&tv, NULL);
+    program->start_of_program = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+    printf("dans create philo -> program start = %ld\n", program->start_of_program);
 
     i = 0;
     while (i < program->phil_count)
@@ -468,6 +410,46 @@ void create_philo_threads(t_program *program)
 	}
 }
 
+
+// void create_philo_threads(t_program *program)
+// {
+//     int i;
+//     int ret;
+//     struct timeval tv;
+
+//     i = 0;
+//     while (i < program->phil_count)
+//     {
+//         ret = pthread_create(&program->philosophers[i].thread_id, NULL, thread_routine, (void *)&program->philosophers[i]);
+//         if (ret != 0)
+// 		{
+// 			printf("Erreur lors de la creation des threads\n");
+// 			exit(0);
+// 		}
+//         program->philosophers[i].has_been_created = 1;
+//         i++;
+//     }
+
+//     gettimeofday(&tv, NULL);
+//     program->start_of_program = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+//     printf("dans create philo -> program start = %ld\n", program->start_of_program);
+
+//     while (nb_of_philo_ready(program) == 1)
+//         usleep(10000);
+//     program->all_philo_created = 1;
+
+//     i = 0;
+//     while (i < program->phil_count)
+// 	{
+// 		ret = pthread_join(program->philosophers[i].thread_id, NULL);
+// 		if (ret != 0)
+// 		{
+// 			printf("Erreur lors de la jonction des threads\n");
+// 			exit(0);
+// 		}
+// 		i++;
+// 	}
+// }
 
 int	main(int argc, char **argv)
 {
@@ -486,19 +468,17 @@ int	main(int argc, char **argv)
     
     fill_philo_struct(program, argv);
 
-    // print_program_struct(program);
+    print_program_struct(program);
     
-    // int i = 0; 
-    // while (i < program->phil_count) 
-    // {
-    //     printf("\nPhilosopher %d:\n", i + 1);
-    //     print_philo_struct(&program->philosophers[i]);
-    //     i++;
-    // }
-    // printf("\n\n");
+    int i = 0; 
+    while (i < program->phil_count) 
+    {
+        printf("\nPhilosopher %d:\n", i + 1);
+        print_philo_struct(&program->philosophers[i]);
+        i++;
+    }
+    printf("\n\n");
     create_philo_threads(program);
 	return (0);
 }
-
-
 
