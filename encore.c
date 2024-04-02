@@ -19,7 +19,7 @@ typedef struct s_philo
 	long			    time_to_eat;
 	long			    time_to_sleep;
     int                 nb_of_time_to_eat;
-	int				    meal_count;
+	int				    meal_counter;
     int                 has_been_created;
 	int				    *state;
     void                *ptr;
@@ -35,6 +35,8 @@ typedef struct s_program
 	pthread_mutex_t		*printf_mutex;
     pthread_mutex_t     one_philo_has_been_created_mutex;
     pthread_mutex_t     all_philos_have_been_created_mutex;
+    pthread_mutex_t     update_meal_counter_mutex;
+    pthread_mutex_t     nb_of_full_philo_mutex;
 }					t_program;
 
 
@@ -231,6 +233,16 @@ t_program *init_program(int nb1)
         printf("error one philo has been created mutex failed\n");
     else
         printf("one philo has been created mutex a bien ete cree\n");
+    int res5 = pthread_mutex_init(&program->update_meal_counter_mutex, NULL);
+        if (res5 != 0)
+        printf("error meal_counter_mutex has been created mutex failed\n");
+    else
+        printf("meal_counter_mutex has been created mutex a bien ete cree\n");
+    int res6 = pthread_mutex_init(&program->nb_of_full_philo_mutex, NULL);
+        if (res6 != 0)
+        printf("error nb_of_full_philo_mutex has been created mutex failed\n");
+    else
+        printf("nb_of_full_philo_mutex has been created mutex a bien ete cree\n");
     return (program);
 }
 
@@ -271,6 +283,7 @@ void fill_philo_struct(t_program *program, char **argv)
         // printf("program->philosophers[i] = %d\n", i);
         program->philosophers[i].ptr = program;
         program->philosophers[i].has_been_created = 0;
+        program->philosophers[i].meal_counter = 0;
         program->philosophers[i].time_to_die = ft_atol(argv[2]);
         program->philosophers[i].time_to_eat = ft_atol(argv[3]);
         program->philosophers[i].time_to_sleep = ft_atol(argv[4]);
@@ -306,6 +319,102 @@ int     nb_of_philo_created(t_program *program)
 }
 
 
+int pickup_right_fork(t_program *program, t_philo *philo)
+{
+    int right_fork_id;
+
+    right_fork_id = (philo->id + 1) % program->phil_count;
+
+    pthread_mutex_lock(&program->forks_mutex[right_fork_id]);
+    printf("Philo %d has pick UP fork %d\n", philo->id, right_fork_id);
+    return (1);
+}
+
+int pickup_left_fork(t_program *program, t_philo *philo)
+{
+    int left_fork_id;
+
+    left_fork_id = philo->id ;
+
+    pthread_mutex_lock(&program->forks_mutex[left_fork_id]);
+    printf("Philo %d has pick UP fork %d\n", philo->id, left_fork_id);
+    return (1);
+}
+
+void putdown_forks(t_program *program, t_philo *philo)
+{
+    int left_fork_id;
+    int right_fork_id;
+
+    left_fork_id = philo->id;
+    right_fork_id = (philo->id + 1) % program->phil_count;
+    
+    pthread_mutex_unlock(&program->forks_mutex[left_fork_id]);
+    printf("Philo %d has put DOWN fork %d\n", philo->id, left_fork_id);
+
+    pthread_mutex_unlock(&program->forks_mutex[right_fork_id]);
+    printf("Philo %d has put DOWN fork %d\n", philo->id, right_fork_id);
+}
+
+int philo_has_both_forks(t_program *program, t_philo *philo)
+{
+    if ((pickup_left_fork(program, philo) == 1) && (pickup_right_fork(program, philo) == 1))
+        return (1);
+    return (0);
+}
+
+
+
+
+
+
+
+void update_meal_counter(t_program *program, t_philo *philo) // ca c est good
+{
+    printf("\n\n entrer dans last meal counter\n");
+    printf("avant le lock - philo %d meal counter = %d\n", philo->id, philo->meal_counter);
+    pthread_mutex_lock(&program->update_meal_counter_mutex);
+    philo->meal_counter++;
+    pthread_mutex_unlock(&program->update_meal_counter_mutex);
+    printf("apres le lock - philo %d meal counter = %d\n", philo->id, philo->meal_counter);
+    printf("exit last meal counter\n\n\n");
+}
+
+
+int nb_of_full_philos(t_program *program)
+{
+    t_philo *philo;
+    int count = 0;
+    int i = 0;
+    
+    printf("\n\nentrer dans nb of full philos\n");
+    pthread_mutex_lock(&program->nb_of_full_philo_mutex);
+    printf("program->phil_count = %d\n", program->phil_count);
+    while (i < program->phil_count)
+    {
+        philo = &program->philosophers[i];
+        printf("nb of time philo %d must eat = %d\n", philo->id, philo->nb_of_time_to_eat);
+        printf("%d | philo %d meal counter = %d\n", i, philo->id, philo->meal_counter);
+        if (philo->meal_counter >= philo->nb_of_time_to_eat)
+            count++;
+        i++;
+    }
+  
+    pthread_mutex_unlock(&program->nb_of_full_philo_mutex);
+      printf("---------count des philos full = %d--------------------\n", count);
+    printf("exit dans nb of full philos\n\n\n");
+    return (count);
+}
+
+int end_of_program(t_program *program)
+{
+    printf("\n\nentering end of prgram\n");
+    if (nb_of_full_philos(program) == program->phil_count)
+        return (1);
+    else
+        return (0);
+}
+
 
 void *thread_routine(void *data) 
 {
@@ -322,55 +431,56 @@ void *thread_routine(void *data)
     }
     pthread_mutex_unlock(&program->all_philos_have_been_created_mutex);
 
-
-  
-    // printf("Philosophe %d: après que tous les philosophes soient créés\n", philo->id);
-    
     int left_fork_id;
     int right_fork_id;
 
-    left_fork_id = philo->id;
-    right_fork_id = (philo->id + 1) % program->phil_count;
-    // printf("coucou\n");
-
-    struct timeval	tv;
-    long time_milli;
-    gettimeofday(&tv, NULL);
-    time_milli = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+    left_fork_id = (philo->id - 1); // fork 0 correspond a philo 0
+    // printf("left fork id = %d\n", left_fork_id);
+    right_fork_id = philo->id % program->phil_count;
+    // printf("right fork id %d\n", right_fork_id);
 
     if (philo->id % 2 == 0)
-            usleep(philo->time_to_eat / 2);
-
+        usleep(1000);
    
-    while (1)
+    while (end_of_program(program) == 0) // || only one philo
     {
-            pthread_mutex_lock(&program->forks_mutex[left_fork_id]);
-            // printf("%ld %d has taken fork %d\n", tv.tv_usec, philo->id, left_fork_id);
-            printf("%ld %d has taken a fork\n", time_milli, philo->id);
-            
-            pthread_mutex_lock(&program->forks_mutex[right_fork_id]);
-            // printf("%ld %d has taken fork %d\n", time_milli, philo->id, right_fork_id);
-            printf("%ld %d has taken a fork\n", time_milli, philo->id);
-            
-            usleep(philo->time_to_eat);
-            printf("%ld %d is eating\n", time_milli, philo->id);
-        
-            pthread_mutex_unlock(&program->forks_mutex[left_fork_id]);
-            // printf("%ld %d has put down fork %d\n", time_milli, philo->id, left_fork_id);
-            
-            pthread_mutex_unlock(&program->forks_mutex[right_fork_id]);
-            // printf("%ld %d has put down fork %d\n", time_milli, philo->id, right_fork_id);
+        // printf("meal count du philo %d = %d\n", philo->id, program->philosophers[philo->id].meal_counter);
+        // if (philo_has_both_forks(program, philo) == 1)
+        // {
+        //     *(program->philosophers[philo->id].state) = EATING;
+        //     printf("Philo %d is eating\n", philo->id);
+        //     usleep(philo->time_to_eat);
+        //     putdown_forks(program, philo);
 
-            usleep(philo->time_to_sleep);
-            printf("%ld %d is sleeping\n", time_milli, philo->id);
-            
-            printf("%ld %d is thinking\n", time_milli, philo->id);
+        //     update_meal_counter(program, philo);
 
+        //     printf("Philo %d has eaten %d times\n", philo->id, philo->meal_counter);
+        //     *(program->philosophers[philo->id].state) = SLEEPING;
+        //     printf("Philo %d is sleeping\n", philo->id);
+        //     usleep(philo->time_to_sleep);
+        //     *(program->philosophers[philo->id].state) = THINKING;
+        //     printf("Philo %d is thinking\n", philo->id);
+        // } 
+
+        pthread_mutex_lock(&program->forks_mutex[left_fork_id]);
+        printf("Philo %d has pick UP fork %d\n", philo->id, left_fork_id);
+        pthread_mutex_lock(&program->forks_mutex[right_fork_id]);
+        printf("Philo %d has pick UP fork %d\n", philo->id, right_fork_id);
+        printf("Philo %d is eating\n", philo->id);
+        // trigger clock
+        usleep(philo->time_to_eat);
+        pthread_mutex_unlock(&program->forks_mutex[left_fork_id]);
+        printf("Philo %d has put DOWN fork %d\n", philo->id, left_fork_id);
+        pthread_mutex_unlock(&program->forks_mutex[right_fork_id]);
+        printf("Philo %d has put DOWN fork %d\n", philo->id, right_fork_id);
+        update_meal_counter(program, philo);
+        printf("Philo %d is sleeping\n", philo->id);
+        usleep(philo->time_to_sleep);
+        printf("Philo %d is thinking\n", philo->id);
     }
-
-
     return NULL;
 }
+
 
 void create_philo_threads(t_program *program)
 {
@@ -469,37 +579,9 @@ int	main(int argc, char **argv)
         i++;
     }
     printf("\n\n");
-   create_philo_threads(program);
+    create_philo_threads(program);
 	return (0);
 }
 
 
 
-// il faudra des mutex pour ca
-
-int nb_of_full_philos(t_program *program, t_philo *philo)
-{
-    int count;
-    int i;
-
-    count = 0;
-    i = 0;
-    while (i < program->phil_count)
-    {
-        if (program->philosophers[i].meal_count == philo->nb_of_time_to_eat)
-            count++;
-        i++;
-    }
-    return (count);
-}
-
-int end_of_program(t_program *program, t_philo *philo)
-{
-    printf("entering end of prgram\n");
-    if ((*(program->philosophers[philo->id].state)) == DEAD)
-        return (1);
-    else if (nb_of_full_philos(program, philo) == program->phil_count)
-        return (1);
-    else
-        return (0);
-}
