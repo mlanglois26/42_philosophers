@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 16:00:49 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/16 16:09:08 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/25 14:22:40 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,37 +50,51 @@ int	nb_of_full_philos(t_program *program)
 }
 
 
+
+
 int philo_is_dead(t_program *program)
 {
+    printf("entering philo_is_dead\n");
     t_philo *philo;
     struct timeval tv;
     long current_time;
     int status;
     int i;
+    int res = 0;
 
     pthread_mutex_lock(&program->check_for_death_mutex);
 
     gettimeofday(&tv, NULL);
     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+    status = 0;
     i = 0;
     while (i < program->phil_count)
     {
+        printf("current time = %ld\n", current_time);
+        // printf("philo last meal time = %ld\n", philo->last_meal_time);
+        // printf("curremt time = %ld\n", current_time);
+        printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
+        // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
+   
         philo = &program->philosophers[i];
+        
+        if (philo->last_meal_time == -1)
+            res = current_time - program->start_of_program;
+        if (res > program->philosophers->time_to_die)
+            status = 1;
+        
+        // si last_time meal == -1 
+        // le pb vient d ici start current time - start_of program
         if ((current_time - philo->last_meal_time) > (current_time - program->philosophers->time_to_die))
         {
-            if (philo->last_meal_time == -1)
-                break ;
-            else
-            {
-                printf("current time = %ld\n", current_time);
-                printf("philo last meal time = %ld\n", philo->last_meal_time);
-                printf("curremt time = %ld\n", current_time);
-                printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
-                printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
-                printf("philo %d died\n", philo->id);
-                status = 1;
-                break ;
-            }
+            // printf("current time = %ld\n", current_time);
+            // printf("philo last meal time = %ld\n", philo->last_meal_time);
+            // printf("curremt time = %ld\n", current_time);
+            // printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
+            // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
+            printf("check philo %d died\n", i);
+            status = 1;
+            break ;
         }  
         else
             status = 0;
@@ -88,18 +102,20 @@ int philo_is_dead(t_program *program)
     }
     
     pthread_mutex_unlock(&program->check_for_death_mutex);
-    return (status);
+    if (status == 1)
+        return (1);
+    else
+        return (0);
 }
 
 
 int end_of_program(t_program *program)
 {
-    // printf("\n\nentering end of prgram\n");
     if (nb_of_full_philos(program) == program->phil_count)
         return (1);
     if (philo_is_dead(program) == 1)
     {
-        printf("one philo died\n");
+        printf("one philo diedaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
         return (1);
     }
     else

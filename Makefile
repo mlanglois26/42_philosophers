@@ -9,6 +9,7 @@ SRCS = 			parsing_utils.c\
 				parsing.c\
 				init.c\
 				routine_utils.c\
+				time.c\
 				actions.c\
 				routine.c\
 				threads.c\

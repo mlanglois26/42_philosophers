@@ -6,28 +6,28 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:48:09 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/16 16:04:04 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/25 13:10:26 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-// pas sure d avoir le droit de faire ca 
-int can_i_eat(t_program *program, t_philo *philo)
-{
-    int g;
-    int d;
+// // pas sure d avoir le droit de faire ca 
+// int can_i_eat(t_program *program, t_philo *philo)
+// {
+//     int g;
+//     int d;
 
-    g = (philo->id + program->phil_count - 1) % program->phil_count;
-    d = (philo->id + 1) % program->phil_count;
+//     g = (philo->id + program->phil_count - 1) % program->phil_count;
+//     d = (philo->id + 1) % program->phil_count;
 
-    if (program->philosophers[g].last_meal_time > program->philosophers[philo->id].last_meal_time)
-        return (0);
-    else if (program->philosophers[d].last_meal_time > program->philosophers[philo->id].last_meal_time)
-        return (0);
-    else
-        return (1);
-}
+//     if (program->philosophers[g].last_meal_time > program->philosophers[philo->id].last_meal_time)
+//         return (0);
+//     else if (program->philosophers[d].last_meal_time > program->philosophers[philo->id].last_meal_time)
+//         return (0);
+//     else
+//         return (1);
+// }
 
 // apres avoir pris les 2 forks
 void update_meal_counter(t_philo *philo)

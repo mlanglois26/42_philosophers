@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:50:23 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/16 16:07:40 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/25 13:42:48 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ static void	wait_for_everybody_and_set_starting_time(t_program *program)
 	gettimeofday(&tv, NULL);
 	pthread_mutex_lock(&program->all_philos_have_been_created_mutex);
 	while (nb_of_philo_created(program) != program->phil_count)
-		usleep(1000);
+		precise_usleep(1000);
 	program->all_philo_created = 1;
 	program->start_of_program = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
 	pthread_mutex_unlock(&program->all_philos_have_been_created_mutex);

@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:55:12 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/16 16:10:17 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/25 14:24:12 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,39 @@ void write_monitor(t_program *program, t_philo *philo)
     else if (state == SLEEPING)
         printf("%ld %d is sleeping\n", clock, philo->id);
     else if (state == DEAD)
+    {
         printf("%ld %d is dead\n", clock, philo->id);
+        exit (0);
+    }
     else
         printf("Dinner is over\n");
+}
+
+int is_valid_set_up(t_program *program)
+{
+    if (program->phil_count % 2 == 0)
+    {
+        if (program->philosophers->time_to_die >= (program->philosophers->time_to_eat + program->philosophers->time_to_sleep + 10))
+            return (1);
+        else
+        {
+            printf("Wrong set up. With EVEN nb of philos time_to_die >= (time_to_eat + time_to_sleep + 10)\n");
+            return (0);
+        }
+            
+    }
+    else if (program->phil_count % 2 != 0)
+    {
+        if (program->philosophers->time_to_die >= program->philosophers->time_to_eat * 2 + program->philosophers->time_to_sleep + 10)
+            return (1);
+        else
+        {
+            printf("Wrong set up. With ODD nb of philos time_to_die >= (time_to_eat * 2 + time_to_sleep + 10)\n");
+            return (0);
+        }
+    }
+    else
+        return (0);
 }
 
 void *thread_routine(void *data) 
@@ -51,19 +81,23 @@ void *thread_routine(void *data)
 
     philo->last_meal_time = philo_birth;
 
-    if (philo->id % 2 == 0)
-        usleep(1000);
-
-    while (end_of_program(program) == 0)
+    if (is_valid_set_up(program))
     {
-        pickup_forks(program, philo);
-        usleep(get_milli(philo->time_to_eat));
+        if (philo->id % 2 == 0)
+        precise_usleep(1000);
+    
+        // || philo->nb_of_time_to_eat == -1
+        while (end_of_program(program) == 0)
+        {
+            pickup_forks(program, philo);
+            precise_usleep(get_milli(philo->time_to_eat));
 
-        putdown_forks(program, philo);
-        usleep(get_milli(philo->time_to_sleep));
+            putdown_forks(program, philo);
+            precise_usleep(get_milli(philo->time_to_sleep));
 
-        *(program->philosophers[philo->id].state) = THINKING;
-        write_monitor(program, philo);
+            *(program->philosophers[philo->id].state) = THINKING;
+            write_monitor(program, philo);
+        }   
     }
     return NULL;
 }

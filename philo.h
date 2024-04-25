@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:23:00 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/16 16:12:19 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/25 13:39:19 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,6 +72,9 @@ int					verif_args(int argc, char **argv);
 
 /* init.c */
 
+t_program *init_program(char **argv);
+t_program *handle_program_mutexes(t_program *program);
+
 /* threads.c */
 
 void				handle_threads(t_program *program);
@@ -86,5 +89,17 @@ int					end_of_program(t_program *program);
 /* routine.c */
 
 void				*thread_routine(void *data);
+void write_monitor(t_program *program, t_philo *philo);
+
+/* time.c */
+
+long get_milli(int nb);
+void precise_usleep(long time_to_do_smthg);
+
+/* actions */
+
+void pickup_forks(t_program *program, t_philo *philo);
+void putdown_forks(t_program *program, t_philo *philo);
+
 
 #endif
