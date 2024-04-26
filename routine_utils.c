@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 16:00:49 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/25 14:22:40 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/26 15:42:56 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,72 +52,202 @@ int	nb_of_full_philos(t_program *program)
 
 
 
-int philo_is_dead(t_program *program)
+// int philo_is_dead(t_program *program)
+// {
+//     // printf("entering philo_is_dead\n");
+//     t_philo *philo;
+//     struct timeval tv;
+//     long current_time;
+//     int status;
+//     int i;
+//     // int res = 0;
+//     // printf("start of programme = %ld\n\n", program->start_of_program);
+//     pthread_mutex_lock(&program->check_for_death_mutex);
+
+//     gettimeofday(&tv, NULL);
+//     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+//     // printf("\n\nCURRENT time = %ld\n\n", current_time);
+//     status = 0;
+//     i = 0;
+//     while (i < program->phil_count)
+//     {
+//         // printf("current time = %ld\n", current_time);
+//         // printf("philo last meal time = %ld\n", philo->last_meal_time);
+//         // printf("curremt time = %ld\n", current_time);
+//         // printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
+//         // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
+   
+//         philo = &program->philosophers[i];
+        
+//         if (philo->last_meal_time == -1)
+//             philo->last_meal_time = current_time;
+//         // if (res > program->philosophers->time_to_die)
+//         //     status = 1;
+        
+//         // si last_time meal == -1 
+//         // le pb vient d ici start current time - start_of program
+//         if ((current_time - philo->last_meal_time) > program->philosophers->time_to_die)
+//         {
+//             // printf("CURRENT time = %ld\n", current_time);
+//             // printf("philo last meal time = %ld\n", philo->last_meal_time);
+//             // printf("curremt time = %ld\n", current_time);
+//             // printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
+//             // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
+//             // printf("check philo %d died\n", i);
+//             *(program->philosophers[philo->id].state) = DEAD;
+//             printf("%ld %d is dead\n", current_time, philo->id);
+//             status = 1;
+//             break ;
+//         }  
+//         else
+//             status = 0;
+//         i++;
+//     }
+    
+//     pthread_mutex_unlock(&program->check_for_death_mutex);
+//     if (status == 1)
+//         return (1);
+//     else
+//         return (0);
+// }
+
+int philo_is_dead(t_philo *philo)
 {
-    printf("entering philo_is_dead\n");
-    t_philo *philo;
+    int status;
+    t_program *program;
     struct timeval tv;
     long current_time;
-    int status;
-    int i;
-    int res = 0;
-
+    
+    status = 0;
+    program = philo->ptr;
+    
     pthread_mutex_lock(&program->check_for_death_mutex);
 
     gettimeofday(&tv, NULL);
     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
-    status = 0;
-    i = 0;
-    while (i < program->phil_count)
-    {
-        printf("current time = %ld\n", current_time);
-        // printf("philo last meal time = %ld\n", philo->last_meal_time);
-        // printf("curremt time = %ld\n", current_time);
-        printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
-        // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
-   
-        philo = &program->philosophers[i];
-        
-        if (philo->last_meal_time == -1)
-            res = current_time - program->start_of_program;
-        if (res > program->philosophers->time_to_die)
-            status = 1;
-        
-        // si last_time meal == -1 
-        // le pb vient d ici start current time - start_of program
-        if ((current_time - philo->last_meal_time) > (current_time - program->philosophers->time_to_die))
-        {
-            // printf("current time = %ld\n", current_time);
-            // printf("philo last meal time = %ld\n", philo->last_meal_time);
-            // printf("curremt time = %ld\n", current_time);
-            // printf("program philo time to die = %ld\n", program->philosophers->time_to_die);
-            // printf("res = %ld | %ld\n", (current_time - philo->last_meal_time), (current_time - program->philosophers->time_to_die));
-            printf("check philo %d died\n", i);
-            status = 1;
-            break ;
-        }  
-        else
-            status = 0;
-        i++;
-    }
     
-    pthread_mutex_unlock(&program->check_for_death_mutex);
-    if (status == 1)
-        return (1);
-    else
-        return (0);
-}
+    if (philo->last_meal_time == -1)
+        philo->last_meal_time = current_time;
 
+    if (current_time - philo->last_meal_time > philo->time_to_die)
+    {
+        *philo->state = DEAD;
+        write_monitor(program, philo);
+        status = 1;
+    }
+    pthread_mutex_unlock(&program->check_for_death_mutex);
+
+    return status;
+}
 
 int end_of_program(t_program *program)
 {
-    if (nb_of_full_philos(program) == program->phil_count)
-        return (1);
-    if (philo_is_dead(program) == 1)
+    int i;
+    for (i = 0; i < program->phil_count; i++)
     {
-        printf("one philo diedaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
-        return (1);
+        if (philo_is_dead(&program->philosophers[i]) == 1)
+        {
+            printf("one philo diedaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n");
+            return 1;
+        }
     }
-    else
-        return (0);
+    return 0;
 }
+
+
+// int philo_is_dead(t_philo *philo)
+// {
+//     int status;
+//     t_program *program;
+//     struct timeval tv;
+//     long current_time;
+    
+//     status = 0;
+//     program = philo->ptr;
+    
+//     pthread_mutex_lock(&program->check_for_death_mutex);
+
+//     gettimeofday(&tv, NULL);
+//     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+    
+//     if (current_time - philo->last_meal_time > philo->time_to_die)
+//     {
+//         philo.state = DEAD;
+//         status = 1;
+//     }
+//     pthread_mutex_unlock(&program->check_for_death_mutex);
+
+//     return (status);
+// }
+
+int all_full(t_program *program)
+{
+   int res;
+
+   res = 0;
+   if (nb_of_full_philos(program) == program->phil_count)
+    {
+        printf("FUUUUUUUUUUUUUUULL\n");
+        res = 1;
+        exit (0);
+    }
+    return (res);
+}
+
+// int all_full(t_program *program)
+// {
+//     pthread_mutex_lock(&program->stop_mutex);
+//     int result = 0;
+//     if (nb_of_full_philos(program) == program->phil_count)
+//     {
+//         printf("FUUUUUUUUUUUUUUULL\n");
+//         result = 1;
+//         exit (0);
+//     }
+//     pthread_mutex_unlock(&program->stop_mutex);
+//     return result;
+// }
+
+
+
+// int philo_is_dead(t_program *program)
+// {
+//     t_philo *philo;
+//     struct timeval tv;
+//     long current_time;
+//     int status;
+//     int i;
+    
+//     pthread_mutex_lock(&program->check_for_death_mutex);
+
+//     gettimeofday(&tv, NULL);
+//     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
+    
+//     status = 0;
+//     i = 0;
+//     while (i < program->phil_count)
+//     {
+      
+   
+//         philo = &program->philosophers[i];
+        
+//         if (philo->last_meal_time == -1)
+//             philo->last_meal_time = current_time;
+       
+//         if ((current_time - philo->last_meal_time) > program->philosophers->time_to_die)
+//         {
+//             *(program->philosophers[philo->id].state) = DEAD;
+//             status = 1;
+//             break ;
+//         }  
+//         else
+//             status = 0;
+//         i++;
+//     }
+    
+//     pthread_mutex_unlock(&program->check_for_death_mutex);
+//     if (status == 1)
+//         return (1);
+//     else
+//         return (0);
+// }

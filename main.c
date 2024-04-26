@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:52:53 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/25 13:14:04 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/04/26 10:33:10 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,16 @@ void clean_program(t_program *program)
 }
 
 
+void print_philo_struct(t_philo *philo) 
+{
+    printf("philo id: %d\n", philo->id);
+    printf("time to die: %ld\n", philo->time_to_die);
+    printf("time to eat: %ld\n", philo->time_to_eat);
+    printf("time to sleep: %ld\n", philo->time_to_sleep);
+    printf("nb_of_time_to_eat: %d\n", philo->nb_of_time_to_eat);
+    printf("philo has been created = %d\n", philo->has_been_created);
+}
+
 int	main(int argc, char **argv)
 {
     t_program *program;
@@ -52,6 +62,15 @@ int	main(int argc, char **argv)
     
     program = init_program(argv);
     program = handle_program_mutexes(program);
+
+    int i = 0; 
+    while (i < program->phil_count) 
+    {
+        printf("\nPhilosopher %d:\n", i + 1);
+        print_philo_struct(&program->philosophers[i]);
+        i++;
+    }
+    printf("\n\n");
     
     handle_threads(program);
     clean_program(program);
