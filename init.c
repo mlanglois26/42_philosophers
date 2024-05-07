@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:26:12 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/26 15:29:29 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/07 18:22:00 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -74,7 +74,20 @@ void init_forks(t_program *program)
 
 t_program *handle_program_mutexes(t_program *program)
 {
+//    int res_3 = pthread_mutex_init(&program->test, NULL);
+//     if (res_3 != 0)
+//         printf("error test_mutex has been created mutex failed\n");
+
+//     int res_30 = pthread_mutex_init(&program->global_mutex, NULL);
+//     if (res_30 != 0)
+//         printf("error global_mutex_mutex has been created mutex failed\n");
    
+//    int res11 = pthread_mutex_init(&program->update_meal_counter_mutex, NULL);
+//     if (res11 != 0)
+//         printf("error mutex pour update_meal_counter_mutex_mutex failed\n");
+//     else
+//         printf("mutex pour all_philos_have_been_created_mutex_mutex a bien ete cree\n");
+    
     int res2 = pthread_mutex_init(&program->all_philos_have_been_created_mutex, NULL);
     if (res2 != 0)
         printf("error mutex pour all_philos_have_been_created_mutex_mutex failed\n");
@@ -87,11 +100,29 @@ t_program *handle_program_mutexes(t_program *program)
     else
         printf("one philo has been created mutex a bien ete cree\n");
 
-    int res6 = pthread_mutex_init(&program->nb_of_full_philo_mutex, NULL);
-        if (res6 != 0)
-        printf("error nb_of_full_philo_mutex has been created mutex failed\n");
+    int res22 = pthread_mutex_init(&program->one_philo_is_full_mutex, NULL);
+    if (res22 != 0)
+        printf("error mutex pour onephiloisfuul_mutex failed\n");
     else
-        printf("nb_of_full_philo_mutex has been created mutex a bien ete cree\n");
+        printf("mutex pour onephiloisfuul_mutex a bien ete cree\n");
+    
+    int res24 = pthread_mutex_init(&program->all_philo_full_mutex, NULL);
+        if (res24 != 0)
+        printf("error one philo has been created mutex failed\n");
+    else
+        printf("one philo has been created mutex a bien ete cree\n");
+
+    // int res6 = pthread_mutex_init(&program->nb_of_full_philo_mutex, NULL);
+    //     if (res6 != 0)
+    //     printf("error nb_of_full_philo_mutex has been created mutex failed\n");
+    // else
+    //     printf("nb_of_full_philo_mutex has been created mutex a bien ete cree\n");
+
+    // int res16 = pthread_mutex_init(&program->nb_of_full_philo_mutex_2, NULL);
+    //     if (res16 != 0)
+    //     printf("error nb_of_full_philo_mutex has been created mutex failed\n");
+    // else
+    //     printf("nb_of_full_philo_mutex has been created mutex a bien ete cree\n");
     
     program->printf_mutex = malloc(sizeof(pthread_mutex_t));
     if (!program->printf_mutex)
@@ -107,11 +138,12 @@ t_program *handle_program_mutexes(t_program *program)
         printf("error mutex pour printf failed\n");
     else
         printf("mutex pour printf a bien ete cree\n");
-    int res7 = pthread_mutex_init(&program->all_full_mutex, NULL);
-    if (res7 != 0)
-        printf("error mutex pour printf failed\n");
-    else
-        printf("mutex pour printf a bien ete cree\n");
+    
+    // int res7 = pthread_mutex_init(&program->all_full_mutex, NULL);
+    // if (res7 != 0)
+    //     printf("error mutex pour printf failed\n");
+    // else
+    //     printf("mutex pour printf a bien ete cree\n");
 
     int res9 = pthread_mutex_init(&program->check_for_death_mutex, NULL);
         if (res9 != 0)
@@ -119,11 +151,11 @@ t_program *handle_program_mutexes(t_program *program)
         else
             printf("check_for_death_mutex has been created mutex a bien ete cree\n");
     
-    int res10 = pthread_mutex_init(&program->stop_mutex, NULL);
-    if (res10 != 0)
-        printf("error stop_mutex has been created mutex failed\n");
-    else
-        printf("stop_mutex has been created mutex a bien ete cree\n");
+    // int res10 = pthread_mutex_init(&program->stop_mutex, NULL);
+    // if (res10 != 0)
+    //     printf("error stop_mutex has been created mutex failed\n");
+    // else
+    //     printf("stop_mutex has been created mutex a bien ete cree\n");
     return (program);
 }
 
@@ -144,7 +176,6 @@ t_program *init_program(char **argv)
         free(program);
         return (NULL);
     }
-    fill_philo_struct(program, argv);
     program->forks_mutex = malloc(sizeof(pthread_mutex_t) * program->phil_count);
     if (!program->forks_mutex)
     {
@@ -153,6 +184,7 @@ t_program *init_program(char **argv)
         return (NULL);
     }
     init_forks(program);
+    fill_philo_struct(program, argv);
     return (program);
 }
 

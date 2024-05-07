@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:52:53 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/26 10:33:10 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/07 18:23:55 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,11 @@ void clean_program(t_program *program)
     }
     pthread_mutex_destroy(&program->one_philo_has_been_created_mutex);
     pthread_mutex_destroy(&program->all_philos_have_been_created_mutex);
-    pthread_mutex_destroy(&program->nb_of_full_philo_mutex);
-    pthread_mutex_destroy(&program->all_full_mutex);
-    pthread_mutex_destroy(&program->check_for_death_mutex);
+    pthread_mutex_destroy(&program->one_philo_is_full_mutex);
+    pthread_mutex_destroy(&program->all_philo_full_mutex);
+    // pthread_mutex_destroy(&program->nb_of_full_philo_mutex);
+    // pthread_mutex_destroy(&program->all_full_mutex);
+    // pthread_mutex_destroy(&program->check_for_death_mutex);
     pthread_mutex_destroy(program->printf_mutex);
     free(program->printf_mutex);
     free(program->forks_mutex);
@@ -76,3 +78,7 @@ int	main(int argc, char **argv)
     clean_program(program);
 	return (0);
 }
+
+// pb avec la mort
+// pb du cas ou meal count == 0 - probablement faire 2 fonctions pour la mort et checker fill_philo_struct
+// pb du philo tout seul 

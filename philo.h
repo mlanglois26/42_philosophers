@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:23:00 by malanglo          #+#    #+#             */
-/*   Updated: 2024/04/26 15:29:49 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/07 16:29:45 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,8 @@ typedef struct s_philo
 	long			philo_birth;
 	int				*state;
 	void			*ptr;
-	pthread_mutex_t	update_meal_counter_mutex;
 	pthread_mutex_t	full_mutex;
+	pthread_mutex_t update_meal_counter_mutex;
 	long			last_meal_time;
 }					t_philo;
 
@@ -54,11 +54,17 @@ typedef struct s_program
 	pthread_mutex_t	*forks_mutex;
 	pthread_mutex_t	one_philo_has_been_created_mutex;
 	pthread_mutex_t	all_philos_have_been_created_mutex;
-	pthread_mutex_t	nb_of_full_philo_mutex;
+	pthread_mutex_t	one_philo_is_full_mutex;
+	pthread_mutex_t	all_philo_full_mutex;
+	// pthread_mutex_t	nb_of_full_philo_mutex;
+	// pthread_mutex_t	nb_of_full_philo_mutex_2;
 	pthread_mutex_t	*printf_mutex;
 	pthread_mutex_t	all_full_mutex;
 	pthread_mutex_t	check_for_death_mutex;
 	pthread_mutex_t stop_mutex;
+	pthread_mutex_t	test;
+	pthread_mutex_t	global_mutex;
+	// pthread_mutex_t	update_meal_counter_mutex;
 }					t_program;
 
 /* utils.c */
@@ -82,6 +88,9 @@ void				handle_threads(t_program *program);
 
 /* routine_utils.c */
 
+void check_if_full(t_philo *philo);
+int new_nb_of_full_philos(t_program *program);
+
 void				wait_for_all(t_program *program);
 int					nb_of_full_philos(t_program *program);
 int					philo_is_dead(t_philo *philo);
@@ -103,5 +112,7 @@ void				precise_usleep(long time_to_do_smthg);
 void				pickup_forks(t_program *program, t_philo *philo);
 void				putdown_forks(t_program *program, t_philo *philo);
 int					can_i_eat(t_program *program, t_philo *philo);
+
+void clean_program(t_program *program);
 
 #endif
