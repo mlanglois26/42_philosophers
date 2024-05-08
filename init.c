@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:26:12 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/07 18:22:00 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:30:08 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ void fill_philo_struct(t_program *program, char **argv)
         program->philosophers[i].last_meal_time = -1;
         program->philosophers[i].philo_birth = -1;
         program->philosophers[i].full = 0;
+        program->philosophers[i].is_dead = 0;
         program->philosophers[i].state = malloc(sizeof(int));
         program->philosophers[i].time_to_die = ft_atol(argv[2]);
         program->philosophers[i].time_to_eat = ft_atol(argv[3]);
@@ -150,6 +151,25 @@ t_program *handle_program_mutexes(t_program *program)
             printf("error check_for_death_mutex has been created mutex failed\n");
         else
             printf("check_for_death_mutex has been created mutex a bien ete cree\n");
+
+    int res29 = pthread_mutex_init(&program->clock_mutex, NULL);
+    if (res29 != 0)
+        printf("error clock_mutex has been created mutex failed\n");
+    else
+        printf("clock_mutex has been created mutex a bien ete cree\n");
+
+    int res39 = pthread_mutex_init(&program->protection_mutex, NULL);
+    if (res39 != 0)
+        printf("error protection_mutex has been created mutex failed\n");
+    else
+        printf("protection_mutex has been created mutex a bien ete cree\n");
+
+     int res49 = pthread_mutex_init(&program->other, NULL);
+    if (res49 != 0)
+        printf("error other has been created mutex failed\n");
+    else
+        printf("other has been created mutex a bien ete cree\n");
+    
     
     // int res10 = pthread_mutex_init(&program->stop_mutex, NULL);
     // if (res10 != 0)
@@ -170,6 +190,7 @@ t_program *init_program(char **argv)
     program->all_philo_created = 0;
     program->all_full = 0;
     program->start_of_program = 0;
+    program->end_of_program_flag = 0;
     program->philosophers = malloc(sizeof(t_philo) * program->phil_count);
     if (!program->philosophers)
     {

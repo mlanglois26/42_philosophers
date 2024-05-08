@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:52:53 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/07 18:23:55 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/08 17:45:32 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ void clean_program(t_program *program)
     // pthread_mutex_destroy(&program->all_full_mutex);
     // pthread_mutex_destroy(&program->check_for_death_mutex);
     pthread_mutex_destroy(program->printf_mutex);
+    pthread_mutex_destroy(&program->protection_mutex);
     free(program->printf_mutex);
     free(program->forks_mutex);
     free(program->philosophers);
@@ -81,4 +82,3 @@ int	main(int argc, char **argv)
 
 // pb avec la mort
 // pb du cas ou meal count == 0 - probablement faire 2 fonctions pour la mort et checker fill_philo_struct
-// pb du philo tout seul 

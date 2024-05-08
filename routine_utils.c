@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 16:00:49 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/07 18:18:44 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:32:31 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,28 +27,16 @@ void	wait_for_all(t_program *program)
 	pthread_mutex_unlock(&program->all_philos_have_been_created_mutex);
 }
 
+// dans actions pick up forks
 void check_if_full(t_philo *philo)
 {
-    int meal_count;
-    // t_program *program;
-
-    // program = philo->ptr;
-    
     pthread_mutex_lock(&philo->update_meal_counter_mutex);
-
-    meal_count = philo->meal_counter;
-    
     if (philo->meal_counter == philo->nb_of_time_to_eat)
-    {
-        // printf("philo->full = %d\n", philo->full);
-        // printf("philo %d is full\n", philo->id + 1);
-        // printf("nb of time to eat = %d\n", philo->nb_of_time_to_eat);
         philo->full = 1;
-        // printf("philo->full = %d\n", philo->full);
-    }
     pthread_mutex_unlock(&philo->update_meal_counter_mutex);
 }
 
+// pour voir si j arrete mon dinner car nb of philo full reached
 int new_nb_of_full_philos(t_program *program)
 {
     int count;
@@ -56,62 +44,18 @@ int new_nb_of_full_philos(t_program *program)
     
     count = 0;
     pthread_mutex_lock(&program->all_philo_full_mutex);
-  
     i = 0;
     while (i < program->phil_count)
     {
-        // check_if_full(&program->philosophers[i]);
         pthread_mutex_lock(&program->philosophers[i].update_meal_counter_mutex);
         if (program->philosophers[i].full == 1)
-        {
             count++;
-            // printf("count = %d\n", count);
-        }
         pthread_mutex_unlock(&program->philosophers[i].update_meal_counter_mutex);
         i++;
     }
     pthread_mutex_unlock(&program->all_philo_full_mutex);
     return (count);
 }
-
-// pour voir si j arrete mon dinner car nb of philo full reached
-
-// int	nb_of_full_philos(t_program *program)
-// {
-// 	t_philo *philo;
-// 	int count;
-// 	int i;
-
-// 	count = 0;
-// 	i = 0;
-// 	pthread_mutex_lock(&program->new_nb_of_full_philo_mutex);
-// 	while (i < program->phil_count)
-// 	{
-// 		philo = &program->philosophers[i];
-// 		if (philo->meal_counter >= philo->nb_of_time_to_eat)
-// 			count++;
-// 		i++;
-// 	}
-// 	pthread_mutex_unlock(&program->new_nb_of_full_philo_mutex);
-// 	return (count);
-// }
-
-int all_full(t_program *program)
-{
-   int res;
-
-//     pthread_mutex_lock(&program->nb_of_full_philo_mutex_2);
-   res = 0;
-   if (new_nb_of_full_philos(program) == program->phil_count)
-    {
-        // printf("FUUUUUUUUUUUUUUULL\n");
-        res = 1;
-        exit (0);
-    }
-    // pthread_mutex_unlock(&program->nb_of_full_philo_mutex_2);
-    return (res);
-}
-
 
 
 int philo_is_dead(t_philo *philo)
@@ -124,31 +68,69 @@ int philo_is_dead(t_philo *philo)
     status = 0;
     program = philo->ptr;
     
-    pthread_mutex_lock(&program->check_for_death_mutex);
-
     gettimeofday(&tv, NULL);
     current_time = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
             
-    pthread_mutex_lock(&philo->update_meal_counter_mutex); 
-    if (philo->last_meal_time == -1)
-        philo->last_meal_time = current_time;
-    pthread_mutex_unlock(&philo->update_meal_counter_mutex); 
+    // pthread_mutex_lock(&philo->update_meal_counter_mutex); 
+    // if (philo->last_meal_time == -1)
+    //     philo->last_meal_time = current_time;
+    // pthread_mutex_unlock(&philo->update_meal_counter_mutex); 
 
-    if (current_time - philo->last_meal_time > (philo->time_to_die))
+    pthread_mutex_lock(&program->check_for_death_mutex);
+
+    // printf("\ncure time = %ld\n", current_time);
+    // printf("philo %d last time meal = %ld\n", philo->id + 1, philo->last_meal_time);
+    // printf("philo time to die = %ld\n\n", philo->time_to_die);
+    if ((current_time - philo->last_meal_time) > (philo->time_to_die))
     {
-        // *philo->state = DEAD;
-        // write_monitor(program, philo);
+        *(program->philosophers[philo->id].state) = DEAD;
+        write_monitor(program, philo);
         status = 1;
     }
     pthread_mutex_unlock(&program->check_for_death_mutex);
-
     return status;
 }
 
- // printf("cure time = %ld\n", current_time);
-        // printf("philo last time meal = %ld\n", philo->last_meal_time);
-        // printf("philo time to die = %ld\n", philo->time_to_die);
+void *monitor_program(void *data)
+{
+    t_program *program;
+    
+    program = (t_program *)data;
 
+    wait_for_all(program);
+
+    while (!simulation_finished(program))
+    {
+        int i = 0;
+        while (i < program->phil_count && !simulation_finished(program))
+        {    
+            if (philo_is_dead(&program->philosophers[i]) == 1)
+            {
+                pthread_mutex_lock(&program->protection_mutex);
+                program->end_of_program_flag = 1;
+                precise_usleep(get_milli(1e4));
+                pthread_mutex_unlock(&program->protection_mutex);
+            }
+            i++;
+        }
+    }
+    return (NULL);
+}
+
+
+int simulation_finished(t_program *program)
+{
+    int res;
+    
+    pthread_mutex_lock(&program->protection_mutex);
+    res = program->end_of_program_flag;
+    pthread_mutex_unlock(&program->protection_mutex);
+    return (res);
+}
+
+
+
+    
 int end_of_program(t_program *program)
 {
     int i;
@@ -310,4 +292,41 @@ int end_of_program(t_program *program)
 //         return (1);
 //     else
 //         return (0);
+// }
+
+
+// int	nb_of_full_philos(t_program *program)
+// {
+// 	t_philo *philo;
+// 	int count;
+// 	int i;
+
+// 	count = 0;
+// 	i = 0;
+// 	pthread_mutex_lock(&program->new_nb_of_full_philo_mutex);
+// 	while (i < program->phil_count)
+// 	{
+// 		philo = &program->philosophers[i];
+// 		if (philo->meal_counter >= philo->nb_of_time_to_eat)
+// 			count++;
+// 		i++;
+// 	}
+// 	pthread_mutex_unlock(&program->new_nb_of_full_philo_mutex);
+// 	return (count);
+// }
+
+// int all_full(t_program *program)
+// {
+//    int res;
+
+// //     pthread_mutex_lock(&program->nb_of_full_philo_mutex_2);
+//    res = 0;
+//    if (new_nb_of_full_philos(program) == program->phil_count)
+//     {
+//         // printf("FUUUUUUUUUUUUUUULL\n");
+//         res = 1;
+//         exit (0);
+//     }
+//     // pthread_mutex_unlock(&program->nb_of_full_philo_mutex_2);
+//     return (res);
 // }

@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:23:00 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/07 16:29:45 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/08 18:25:10 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,11 +36,13 @@ typedef struct s_philo
 	int				meal_counter;
 	int				has_been_created;
 	int				full;
+	int				is_dead;
 	long			philo_birth;
 	int				*state;
 	void			*ptr;
 	pthread_mutex_t	full_mutex;
 	pthread_mutex_t update_meal_counter_mutex;
+	// pthread_mutex_t catch_up_mutex;
 	long			last_meal_time;
 }					t_philo;
 
@@ -51,6 +53,7 @@ typedef struct s_program
 	int				all_philo_created;
 	int				all_full;
 	long			start_of_program;
+	pthread_t		monitor;
 	pthread_mutex_t	*forks_mutex;
 	pthread_mutex_t	one_philo_has_been_created_mutex;
 	pthread_mutex_t	all_philos_have_been_created_mutex;
@@ -64,6 +67,10 @@ typedef struct s_program
 	pthread_mutex_t stop_mutex;
 	pthread_mutex_t	test;
 	pthread_mutex_t	global_mutex;
+	pthread_mutex_t	clock_mutex;
+	int end_of_program_flag;
+	pthread_mutex_t protection_mutex;
+	pthread_mutex_t other;
 	// pthread_mutex_t	update_meal_counter_mutex;
 }					t_program;
 
@@ -94,6 +101,7 @@ int new_nb_of_full_philos(t_program *program);
 void				wait_for_all(t_program *program);
 int					nb_of_full_philos(t_program *program);
 int					philo_is_dead(t_philo *philo);
+// int philo_is_dead(t_philo *philo, long clock);
 int					end_of_program(t_program *program);
 int					all_full(t_program *program);
 
@@ -114,5 +122,10 @@ void				putdown_forks(t_program *program, t_philo *philo);
 int					can_i_eat(t_program *program, t_philo *philo);
 
 void clean_program(t_program *program);
+void update_meal_counter(t_philo *philo);
+int simulation_finished(t_program *program);
+void test_clean(t_program *program);
+void *monitor_program(void *data);
+
 
 #endif
