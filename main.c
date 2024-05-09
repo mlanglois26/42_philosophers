@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:52:53 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/08 17:45:32 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/09 16:13:07 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void clean_program(t_program *program)
     while (i < program->phil_count)
     {
         pthread_mutex_destroy(&program->forks_mutex[i]);
-        pthread_mutex_destroy(&program->philosophers[i].update_meal_counter_mutex);
+        // pthread_mutex_destroy(&program->philosophers[i].update_meal_counter_mutex);
         pthread_mutex_destroy(&program->philosophers[i].full_mutex);
         free(program->philosophers[i].state);
         i++;
@@ -32,9 +32,9 @@ void clean_program(t_program *program)
     // pthread_mutex_destroy(&program->nb_of_full_philo_mutex);
     // pthread_mutex_destroy(&program->all_full_mutex);
     // pthread_mutex_destroy(&program->check_for_death_mutex);
-    pthread_mutex_destroy(program->printf_mutex);
+    pthread_mutex_destroy(&program->printf_mutex);
     pthread_mutex_destroy(&program->protection_mutex);
-    free(program->printf_mutex);
+    // free(program->printf_mutex);
     free(program->forks_mutex);
     free(program->philosophers);
     free(program);
@@ -66,14 +66,14 @@ int	main(int argc, char **argv)
     program = init_program(argv);
     program = handle_program_mutexes(program);
 
-    int i = 0; 
-    while (i < program->phil_count) 
-    {
-        printf("\nPhilosopher %d:\n", i + 1);
-        print_philo_struct(&program->philosophers[i]);
-        i++;
-    }
-    printf("\n\n");
+    // int i = 0; 
+    // while (i < program->phil_count) 
+    // {
+    //     printf("\nPhilosopher %d:\n", i + 1);
+    //     print_philo_struct(&program->philosophers[i]);
+    //     i++;
+    // }
+    // printf("\n\n");
     
     handle_threads(program);
     clean_program(program);
@@ -82,3 +82,6 @@ int	main(int argc, char **argv)
 
 // pb avec la mort
 // pb du cas ou meal count == 0 - probablement faire 2 fonctions pour la mort et checker fill_philo_struct
+
+/// ce qui pose probelem c est que si un philo est mort d autres peuvent etre en train de manger / prendre des fourchettes et donc de faire appel a des mutex
+//il devrait y avoir une seule grande mutex du monitor qui ecrit et check pour la mort en meme temps - si un philo est declare mort alors les autres ne sont plus autorise a rien faire

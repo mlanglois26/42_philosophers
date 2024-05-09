@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:50:23 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/08 18:39:17 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/09 12:15:50 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,22 +90,17 @@ static void	join_threads(t_program *program)
 	int	i;
 	int	ret;
 
-	pthread_mutex_lock(&program->other);
-	if (program->end_of_program_flag == 1)
+	i = 0;
+	while (i < program->phil_count)
 	{
-		i = 0;
-		while (i < program->phil_count)
+		ret = pthread_join(program->philosophers[i].thread_id, NULL);
+		if (ret != 0)
 		{
-			ret = pthread_join(program->philosophers[i].thread_id, NULL);
-			if (ret != 0)
-			{
-				printf("Erreur lors de la jonction des threads\n");
-				exit(0);
-			}
-			i++;
+			printf("Erreur lors de la jonction des threads\n");
+			exit(0);
 		}
+		i++;
 	}
-	pthread_mutex_unlock(&program->other);
 	pthread_join(program->monitor, NULL);
 }
 

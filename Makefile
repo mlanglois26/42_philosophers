@@ -3,7 +3,7 @@ NAME = philo
 
 CC = cc 
 
-CFLAGS = -Wall -Wextra -Werror -pthread -fsanitize=thread
+CFLAGS = -Wall -Wextra -Werror -pthread 
 
 SRCS = 			parsing_utils.c\
 				parsing.c\

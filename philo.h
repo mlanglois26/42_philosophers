@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 14:23:00 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/08 18:25:10 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/09 13:15:35 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ typedef struct s_philo
 	int				*state;
 	void			*ptr;
 	pthread_mutex_t	full_mutex;
-	pthread_mutex_t update_meal_counter_mutex;
+	// pthread_mutex_t update_meal_counter_mutex;
 	// pthread_mutex_t catch_up_mutex;
 	long			last_meal_time;
 }					t_philo;
@@ -61,7 +61,8 @@ typedef struct s_program
 	pthread_mutex_t	all_philo_full_mutex;
 	// pthread_mutex_t	nb_of_full_philo_mutex;
 	// pthread_mutex_t	nb_of_full_philo_mutex_2;
-	pthread_mutex_t	*printf_mutex;
+	// pthread_mutex_t	*printf_mutex;
+	pthread_mutex_t	printf_mutex;
 	pthread_mutex_t	all_full_mutex;
 	pthread_mutex_t	check_for_death_mutex;
 	pthread_mutex_t stop_mutex;
@@ -71,7 +72,9 @@ typedef struct s_program
 	int end_of_program_flag;
 	pthread_mutex_t protection_mutex;
 	pthread_mutex_t other;
-	// pthread_mutex_t	update_meal_counter_mutex;
+	pthread_mutex_t	new_update_meal_counter_mutex;
+	pthread_mutex_t	philo_state_mutex;
+	pthread_mutex_t	access_mutex;
 }					t_program;
 
 /* utils.c */
