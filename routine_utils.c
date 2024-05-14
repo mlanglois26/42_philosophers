@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 16:00:49 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/09 16:20:36 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/14 10:48:02 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,12 +67,18 @@ int new_nb_of_full_philos(t_program *program)
     // pthread_mutex_unlock(&philo->update_meal_counter_mutex); 
 
 
-int check_if_philo_has_forks_in_hands(t_philo * philo)
+void check_if_philo_has_locked_a_fork(t_philo * philo)
 {
+    if (*philo->state == HAS_TAKEN_A_FORK)
+    {
+        while (*philo->state == HAS_TAKEN_A_FORK)
+           // unlock mutex
+        return (0);   
+    }
     if (*philo->state == EATING)
     {
         while (*philo->state == EATING)
-            ;
+           // unlock mutex
         return (0);   
     }
     return (0);
