@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/16 16:00:49 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/14 10:48:02 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/15 17:25:16 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,22 +67,22 @@ int new_nb_of_full_philos(t_program *program)
     // pthread_mutex_unlock(&philo->update_meal_counter_mutex); 
 
 
-void check_if_philo_has_locked_a_fork(t_philo * philo)
-{
-    if (*philo->state == HAS_TAKEN_A_FORK)
-    {
-        while (*philo->state == HAS_TAKEN_A_FORK)
-           // unlock mutex
-        return (0);   
-    }
-    if (*philo->state == EATING)
-    {
-        while (*philo->state == EATING)
-           // unlock mutex
-        return (0);   
-    }
-    return (0);
-}
+// void check_if_philo_has_locked_a_fork(t_philo * philo)
+// {
+//     if (*philo->state == HAS_TAKEN_A_FORK)
+//     {
+//         while (*philo->state == HAS_TAKEN_A_FORK)
+//            // unlock mutex
+//         return (0);   
+//     }
+//     if (*philo->state == EATING)
+//     {
+//         while (*philo->state == EATING)
+//            // unlock mutex
+//         return (0);   
+//     }
+//     return (0);
+// }
     
 int philo_is_dead(t_philo *philo)
 {
@@ -111,7 +111,7 @@ int philo_is_dead(t_philo *philo)
         {
             printf("ok pb ici -- philo nb  | le philo etait en meme tempt en train de vouloir acceder qu write monitor je pense il faut proteger le state et le write %d\n", philo->id + 1);
         }
-           if (*philo->state != EATING)
+        if (*philo->state != EATING)
         {
             printf("another pb ici -- philo nb %d\n", philo->id + 1);
         }
