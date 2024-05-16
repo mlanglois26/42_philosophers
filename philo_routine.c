@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 14:10:57 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/15 18:20:40 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/16 11:45:46 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,14 @@ static void	special_routine(t_program *program, t_philo *philo)
 		return ;
 }
 
+void	sleep_and_think(t_program *program, t_philo *philo)
+{
+	putdown_forks(program, philo);
+	if (death_alert(program) == 1)
+		return ;
+	think_accordingly(program, philo);
+}
+
 void	*thread_routine(void *data)
 {
 	t_philo		*philo;
@@ -55,14 +63,13 @@ void	*thread_routine(void *data)
 	{
 		while (death_alert(program) != 1 && everybody_is_full(program) != 1)
 		{
+			if (death_alert(program) == 1)
+				break ;
 			pickup_forks(program, philo);
 			is_there_a_dead_philo = get_death_flag_value(program);
 			if (is_there_a_dead_philo == 0)
 				eat(program, philo);
-			putdown_forks(program, philo);
-			if (death_alert(program) == 1)
-				break ;
-			think_accordingly(program, philo);
+			sleep_and_think(program, philo);
 		}
 	}
 	return (NULL);
