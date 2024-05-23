@@ -6,7 +6,7 @@
 /*   By: malanglo <malanglo@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/13 15:58:13 by malanglo          #+#    #+#             */
-/*   Updated: 2024/05/16 09:14:45 by malanglo         ###   ########.fr       */
+/*   Updated: 2024/05/23 09:57:01 by malanglo         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	write_monitor(t_program *program, t_philo *philo)
 	clock = tv.tv_sec * 1e3 + tv.tv_usec / 1e3;
 	pthread_mutex_lock(&program->monitor->printf_mutex);
 	if (state == DEAD)
-		printf("%ld %d is dead\n", clock, philo->id + 1);
+		printf("%ld %d died\n", clock, philo->id + 1);
 	pthread_mutex_unlock(&program->monitor->printf_mutex);
 	if (death_alert(program) == 1)
 		return ;
